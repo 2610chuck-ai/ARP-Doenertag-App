@@ -22,11 +22,9 @@ const amountPaidInput = document.querySelector('#amount-paid');
 const paymentHint = document.querySelector('#payment-hint');
 
 const DEFAULT_NOTE_PLACEHOLDER = 'z. B. ohne Zwiebeln, extra Soße, scharf';
-const ALL_CATEGORIES_KEY = '__all__';
-
 const windowInfo = getOrderWindow();
 let filteredEmployees = [...employees];
-let activeCategoryFilter = ALL_CATEGORIES_KEY;
+let activeCategoryFilter = menuItems[0]?.category || '';
 let selectedItemCategory = '';
 let selectedItemId = '';
 let editingCartItemId = '';
@@ -142,9 +140,7 @@ function resetComposer(options = {}) {
 
 function getFilteredCategories() {
   const term = menuSearch.value.trim().toLowerCase();
-  const source = activeCategoryFilter === ALL_CATEGORIES_KEY
-    ? menuItems
-    : menuItems.filter((category) => category.category === activeCategoryFilter);
+  const source = menuItems.filter((category) => category.category === activeCategoryFilter);
 
   return source
     .map((category) => ({
@@ -161,15 +157,11 @@ function getFilteredCategories() {
 }
 
 function renderCategoryTabs() {
-  const totalItems = menuItems.reduce((sum, category) => sum + category.items.length, 0);
-  const tabs = [
-    { key: ALL_CATEGORIES_KEY, label: 'Alle', count: totalItems },
-    ...menuItems.map((category) => ({
-      key: category.category,
-      label: category.category,
-      count: category.items.length
-    }))
-  ];
+  const tabs = menuItems.map((category) => ({
+    key: category.category,
+    label: category.category,
+    count: category.items.length
+  }));
 
   categoryTabs.innerHTML = tabs
     .map(
@@ -275,8 +267,7 @@ function renderMenuGrid() {
 
   menuGrid.querySelectorAll('[data-item-id]').forEach((button) => {
     button.addEventListener('click', () => {
-      const keepFilter = activeCategoryFilter === ALL_CATEGORIES_KEY;
-      setSelection(button.dataset.category, button.dataset.itemId, keepFilter);
+      setSelection(button.dataset.category, button.dataset.itemId, true);
     });
   });
 
@@ -519,7 +510,7 @@ form.addEventListener('submit', async (event) => {
 
     cartItems = [];
     amountPaidInput.value = '';
-    activeCategoryFilter = ALL_CATEGORIES_KEY;
+    activeCategoryFilter = menuItems[0]?.category || '';
     resetComposer({ clearSelection: true });
     renderCategoryTabs();
     renderMenuGrid();

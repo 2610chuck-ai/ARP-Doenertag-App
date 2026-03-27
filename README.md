@@ -1,26 +1,18 @@
-Wichtig: Die Netlify Function läuft jetzt im modernen Functions-Format (ES Modules / export default).
-Delete im Zweifel alte Datei netlify/functions/orders.js aus deinem Repo, sodass nur noch orders.mjs vorhanden ist.
+# Kebab-Bestellung – Netlify stabiler Fix
 
-# Kebab-Bestellung – Netlify Final Fix
+Wichtig für den Deploy:
 
-Diese Version behebt den Netlify-Function-Absturz mit `@netlify/blobs`.
+- Im Repository darf **nur** diese Function-Datei liegen:
+  - `netlify/functions/orders.js`
+- Diese Datei darf **nicht** vorhanden sein:
+  - `netlify/functions/orders.mjs`
+  - `netlify/functions/orders.cjs`
+  - `orders.js` im Projekt-Root
+- `package.json` enthält **kein** `"type": "module"`
 
-## Ursache
-Die Function lief als CommonJS und hat `@netlify/blobs` per `require(...)` geladen.
-Neuere Netlify-Runtimes erwarten hier `import(...)`.
+Netlify Umgebungsvariable:
+- `ADMIN_PIN=2610`
 
-## Fix
-`netlify/functions/orders.js` nutzt jetzt dynamischen Import:
-- kein `require('@netlify/blobs')` mehr
-- stattdessen `await import('@netlify/blobs')`
-
-## Nach dem Upload
-1. Projekt neu zu GitHub pushen
-2. In Netlify neu deployen
-3. Testen:
-   - `/.netlify/functions/orders?health=1`
-   - `/azubi`
-   - `/index.html`
-
-
-Blobs-Fix: In Lambda-kompatiblen Netlify Functions wird vor getStore() jetzt connectLambda(event) aufgerufen, damit Netlify Blobs im Runtime-Kontext korrekt initialisiert wird.
+Test:
+- `/.netlify/functions/orders?health=1`
+- `/.netlify/functions/orders?health=1&pin=2610`
