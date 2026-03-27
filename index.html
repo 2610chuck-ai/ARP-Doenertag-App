@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kebap-Bestellung</title>
+    <meta name="theme-color" content="#0f172a" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./config.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero">
+        <div>
+          <span class="eyebrow">Donnerstags-Bestellung</span>
+          <h1>Kebap Web App</h1>
+          <p class="lead">
+            Mitarbeiter auswählen, Gericht wählen, Sonderwünsche angeben und Betrag eintragen. Pro Mitarbeiter wird die Bestellung je Termin automatisch aktualisiert.
+          </p>
+        </div>
+        <a class="ghost-link" href="./azubi.html">Azubi-Seite</a>
+      </header>
+
+      <main class="layout two-cols">
+        <section class="card accent">
+          <div class="card-head">
+            <div>
+              <h2>Bestellstatus</h2>
+              <p>Bestellschluss ist immer donnerstags um 10:00 Uhr.</p>
+            </div>
+            <span id="mode-badge" class="mode-badge"></span>
+          </div>
+          <div id="deadline-box" class="status-box"></div>
+          <div class="hint-list">
+            <div>Nach Donnerstag 10:00 Uhr landet jede neue Bestellung automatisch in der nächsten Woche.</div>
+            <div>Der Azubi sieht alle Bestellungen gesammelt auf der Verwaltungsseite.</div>
+            <div>QR-Code später einfach auf diese Seite zeigen lassen.</div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <div>
+              <h2>Deine Bestellung</h2>
+              <p>Pflichtfelder sind markiert. Sonderwünsche können frei eingetragen werden.</p>
+            </div>
+          </div>
+
+          <form id="order-form" class="form-grid">
+            <label class="field">
+              <span>Mitarbeiter *</span>
+              <input id="employee-search" type="search" placeholder="Name suchen..." autocomplete="off" />
+              <select id="employee" required></select>
+            </label>
+
+            <label class="field">
+              <span>Kategorie *</span>
+              <select id="category" required></select>
+            </label>
+
+            <label class="field field-full">
+              <span>Gericht *</span>
+              <select id="item" required></select>
+            </label>
+
+            <label class="field">
+              <span>Preis</span>
+              <input id="price" type="text" readonly />
+            </label>
+
+            <label class="field">
+              <span>Bestellung gilt für</span>
+              <input id="target-date-label" type="text" readonly />
+            </label>
+
+            <label class="field field-full">
+              <span>Sonderwunsch / Text</span>
+              <textarea
+                id="notes"
+                rows="4"
+                placeholder="Beispiel: nur Fleisch, Mais, Soße, extra scharf"
+              ></textarea>
+            </label>
+
+            <label class="field">
+              <span>Bezahlt in Euro *</span>
+              <input
+                id="amount-paid"
+                type="number"
+                step="0.01"
+                min="0"
+                inputmode="decimal"
+                placeholder="z. B. 12.00"
+                required
+              />
+            </label>
+
+            <div class="field field-full notice-box">
+              <strong>Hinweis:</strong>
+              Eine vorhandene Bestellung vom gleichen Mitarbeiter für denselben Termin wird überschrieben. So kann jeder seine Auswahl noch ändern.
+            </div>
+
+            <div class="field field-full submit-row">
+              <button class="primary-btn" type="submit">Bestellung absenden</button>
+              <span id="submit-message" class="inline-message"></span>
+            </div>
+          </form>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Azubi-Verwaltung</title>
+    <meta name="theme-color" content="#0f172a" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./config.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero compact">
+        <div>
+          <span class="eyebrow">Azubi-Ansicht</span>
+          <h1>Bestellübersicht</h1>
+          <p class="lead">Alle Bestellungen gesammelt, mit Summen, Rückgeld, Löschfunktion und WhatsApp-Export.</p>
+        </div>
+        <a class="ghost-link" href="./index.html">Zur Bestellung</a>
+      </header>
+
+      <main class="layout admin-layout">
+        <section class="card accent" id="pin-card">
+          <div class="card-head">
+            <div>
+              <h2>Zugriff</h2>
+              <p>Der PIN wird serverseitig geprüft. Ohne PIN werden keine Daten geladen.</p>
+            </div>
+            <span id="mode-badge-admin" class="mode-badge"></span>
+          </div>
+          <form id="pin-form" class="form-grid compact-grid">
+            <label class="field">
+              <span>PIN</span>
+              <input id="pin-input" type="password" inputmode="numeric" placeholder="PIN eingeben" required />
+            </label>
+            <div class="field submit-row">
+              <button class="primary-btn" type="submit">Öffnen</button>
+              <span id="pin-message" class="inline-message"></span>
+            </div>
+          </form>
+        </section>
+
+        <section id="admin-content" class="hidden-block">
+          <div class="admin-toolbar">
+            <section class="card accent">
+              <div class="card-head">
+                <div>
+                  <h2>Filter</h2>
+                  <p>Zwischen aktueller und nächster Bestellrunde wechseln.</p>
+                </div>
+              </div>
+              <div class="toolbar-row">
+                <label class="field inline-field">
+                  <span>Bestelltermin</span>
+                  <select id="date-filter"></select>
+                </label>
+                <button id="refresh-btn" class="secondary-btn" type="button">Aktualisieren</button>
+              </div>
+              <div id="admin-deadline-info" class="status-box slim"></div>
+            </section>
+
+            <section class="card">
+              <div class="card-head">
+                <div>
+                  <h2>Aktionen</h2>
+                  <p>Liste kopieren oder direkt an den Kebap-Laden per WhatsApp senden.</p>
+                </div>
+              </div>
+              <div class="toolbar-row wrap">
+                <button id="copy-btn" class="secondary-btn" type="button">Liste kopieren</button>
+                <button id="whatsapp-btn" class="primary-btn" type="button">Per WhatsApp senden</button>
+              </div>
+              <span id="action-message" class="inline-message"></span>
+            </section>
+          </div>
+
+          <section class="summary-grid">
+            <article class="card stat-card">
+              <span class="stat-label">Bestellungen</span>
+              <strong id="stat-orders">0</strong>
+            </article>
+            <article class="card stat-card">
+              <span class="stat-label">Gesamt Essen</span>
+              <strong id="stat-total">0,00 €</strong>
+            </article>
+            <article class="card stat-card">
+              <span class="stat-label">Gezahlt</span>
+              <strong id="stat-paid">0,00 €</strong>
+            </article>
+            <article class="card stat-card">
+              <span class="stat-label">Rückgeld / Differenz</span>
+              <strong id="stat-change">0,00 €</strong>
+            </article>
+          </section>
+
+          <section class="card">
+            <div class="card-head">
+              <div>
+                <h2>Bestellungen</h2>
+                <p>Der Stand wird automatisch aktualisiert. Einträge können bei Bedarf gelöscht werden.</p>
+              </div>
+              <span id="last-sync" class="sync-text"></span>
+            </div>
+            <div id="orders-list" class="orders-list"></div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="./admin.js"></script>
+  </body>
+</html>
