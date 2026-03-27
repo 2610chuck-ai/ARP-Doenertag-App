@@ -32,3 +32,10 @@ Diese Version ist fertig für Netlify:
 
 Wenn `demoMode` in `config.js` auf `true` steht, wird lokal im Browser gespeichert.
 Für den Live-Betrieb auf Netlify sollte `demoMode: false` aktiv bleiben.
+
+
+## Update: Warenkorb-Version
+- Mehrere Gerichte pro Mitarbeiter und Termin
+- Sonderwunsch gehört jetzt pro Artikel in den Warenkorb
+- Warenkorb-Einträge können vor dem Speichern bearbeitet oder gelöscht werden
+- Azubi-Ansicht zeigt komplette Warenkörbe

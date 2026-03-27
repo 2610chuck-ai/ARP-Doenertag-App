@@ -99,6 +99,50 @@ export function getOrderWindow(now = new Date()) {
   };
 }
 
+function normalizeLegacyOrderItem(order) {
+  if (!order) return [];
+  if (Array.isArray(order.items) && order.items.length) {
+    return order.items.map((item, index) => ({
+      cart_item_id: item.cart_item_id || item.id || `${order.id || 'order'}-${index + 1}`,
+      category: item.category || order.category || '',
+      menu_item_id: item.menu_item_id || order.menu_item_id || '',
+      menu_item_name: item.menu_item_name || order.menu_item_name || '',
+      price: Number(item.price || 0),
+      notes: item.notes || ''
+    }));
+  }
+
+  if (order.menu_item_name || order.menu_item_id) {
+    return [
+      {
+        cart_item_id: order.id || crypto.randomUUID(),
+        category: order.category || '',
+        menu_item_id: order.menu_item_id || '',
+        menu_item_name: order.menu_item_name || '',
+        price: Number(order.price || 0),
+        notes: order.notes || ''
+      }
+    ];
+  }
+
+  return [];
+}
+
+export function getOrderItems(order) {
+  return normalizeLegacyOrderItem(order);
+}
+
+export function getOrderTotal(order) {
+  if (Number.isFinite(Number(order?.total_price))) {
+    return Number(order.total_price);
+  }
+  return getOrderItems(order).reduce((sum, item) => sum + Number(item.price || 0), 0);
+}
+
+export function getOrderItemCount(order) {
+  return getOrderItems(order).length;
+}
+
 export function buildWhatsAppText(orders, dateLabel) {
   const lines = [];
   lines.push(`Bestellung ${config.companyName}`);
@@ -106,13 +150,18 @@ export function buildWhatsAppText(orders, dateLabel) {
   lines.push('');
 
   orders.forEach((order, index) => {
-    const itemLabel = order.menu_item_id ? `${order.menu_item_id}. ${order.menu_item_name}` : order.menu_item_name;
-    lines.push(`${index + 1}. ${order.employee_name} - ${itemLabel} (${formatEuro(order.price)})`);
-    if (order.notes) lines.push(`   Wunsch: ${order.notes}`);
+    const items = getOrderItems(order);
+    lines.push(`${index + 1}. ${order.employee_name}`);
+    items.forEach((item, itemIndex) => {
+      const label = item.menu_item_id ? `${item.menu_item_id}. ${item.menu_item_name}` : item.menu_item_name;
+      lines.push(`   ${itemIndex + 1}) ${label} (${formatEuro(item.price)})`);
+      if (item.notes) lines.push(`      Wunsch: ${item.notes}`);
+    });
+    lines.push(`   Gesamt: ${formatEuro(getOrderTotal(order))}`);
     lines.push(`   Bezahlt: ${formatEuro(order.amount_paid)}`);
   });
 
-  const total = orders.reduce((sum, order) => sum + Number(order.price || 0), 0);
+  const total = orders.reduce((sum, order) => sum + getOrderTotal(order), 0);
   const paid = orders.reduce((sum, order) => sum + Number(order.amount_paid || 0), 0);
   const change = paid - total;
 
@@ -121,7 +170,8 @@ export function buildWhatsAppText(orders, dateLabel) {
   lines.push(`Gesamt bezahlt: ${formatEuro(paid)}`);
   lines.push(`Differenz / Rückgeld: ${formatEuro(change)}`);
 
-  return lines.join('\n');
+  return lines.join('
+');
 }
 
 function getLocalOrders() {
@@ -179,14 +229,27 @@ export async function createOrder(order) {
     (entry) => entry.employee_name === payload.employee_name && entry.target_order_date === payload.target_order_date
   );
 
+  const normalizedItems = (payload.items || []).map((item, index) => ({
+    cart_item_id: item.cart_item_id || `${payload.employee_name}-${index + 1}`,
+    category: item.category,
+    menu_item_id: item.menu_item_id,
+    menu_item_name: item.menu_item_name,
+    price: Number(item.price || 0),
+    notes: item.notes || ''
+  }));
+
   const saved = {
     id: existingIndex >= 0 ? orders[existingIndex].id : crypto.randomUUID(),
+    employee_name: payload.employee_name,
+    items: normalizedItems,
+    total_price: normalizedItems.reduce((sum, item) => sum + Number(item.price || 0), 0),
+    amount_paid: Number(payload.amount_paid || 0),
+    target_order_date: payload.target_order_date,
     updated_at: new Date().toISOString(),
-    ...payload
+    created_at: existingIndex >= 0 ? orders[existingIndex].created_at || payload.created_at : payload.created_at
   };
 
   if (existingIndex >= 0) {
-    saved.created_at = orders[existingIndex].created_at || payload.created_at;
     orders[existingIndex] = saved;
   } else {
     orders.unshift(saved);

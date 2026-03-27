@@ -4,75 +4,100 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kebap-Bestellung</title>
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content="#f97316" />
     <link rel="stylesheet" href="./styles.css" />
     <script src="./config.js"></script>
   </head>
   <body>
     <div class="app-shell">
-      <header class="hero">
+      <header class="hero shop-hero">
         <div>
           <span class="eyebrow">Donnerstags-Bestellung</span>
-          <h1>Kebap Web App</h1>
+          <h1>Kebap Warenkorb</h1>
           <p class="lead">
-            Mitarbeiter wählen, Gericht antippen, Sonderwünsche eintragen und den gezahlten Betrag erfassen.
-            Nach Donnerstag 10:00 Uhr wird automatisch für die nächste Woche bestellt.
+            Mitarbeiter auswählen, Gericht antippen, Sonderwunsch direkt zum Gericht hinterlegen und danach in den
+            Warenkorb legen. Erst der komplette Warenkorb wird gespeichert.
           </p>
         </div>
-        <a class="ghost-link" href="./azubi.html">Azubi-Seite</a>
+        <div class="hero-actions">
+          <span id="mode-badge" class="mode-badge"></span>
+          <a class="ghost-link" href="./azubi.html">Azubi-Seite</a>
+        </div>
       </header>
 
-      <main class="layout order-layout">
-        <section class="stack-column">
-          <section class="card accent">
-            <div class="card-head">
-              <div>
-                <h2>Bestellstatus</h2>
-                <p>Bestellschluss ist immer donnerstags um 10:00 Uhr.</p>
-              </div>
-              <span id="mode-badge" class="mode-badge"></span>
+      <main class="layout shop-layout">
+        <section class="card menu-pane">
+          <div class="card-head compact-gap align-start-on-mobile">
+            <div>
+              <h2>Speisekarte</h2>
+              <p>Wie in einer Shop-App: auswählen, Wunsch eintragen, in den Warenkorb legen.</p>
             </div>
-            <div id="deadline-box" class="status-box"></div>
-            <div class="hint-list">
-              <div>Nach Donnerstag 10:00 Uhr landet jede neue Bestellung automatisch in der nächsten Woche.</div>
-              <div>Der Azubi sieht alle Bestellungen gesammelt auf der Verwaltungsseite.</div>
-              <div>QR-Code später einfach auf diese Seite zeigen lassen.</div>
-            </div>
-          </section>
+            <label class="search-box food-search">
+              <span class="sr-only">Gericht suchen</span>
+              <input id="menu-search" type="search" placeholder="Gericht suchen..." autocomplete="off" />
+            </label>
+          </div>
 
-          <section class="card sticky-card">
-            <div class="card-head compact-gap">
+          <div id="category-tabs" class="category-tabs"></div>
+          <div id="menu-grid" class="menu-grid"></div>
+        </section>
+
+        <aside class="card cart-pane sticky-card">
+          <form id="order-form" class="cart-form">
+            <div class="cart-top-block">
               <div>
-                <h2>Deine Bestellung</h2>
-                <p>Pflichtfelder sind markiert. Die aktuelle Auswahl bleibt oben sichtbar.</p>
+                <h2>Warenkorb</h2>
+                <p>Der Sonderwunsch gehört immer genau zu dem aktuell gewählten Gericht.</p>
               </div>
+              <div id="deadline-inline" class="inline-status"></div>
             </div>
 
-            <form id="order-form" class="form-grid form-grid-single">
+            <div class="employee-block">
               <label class="field field-full">
                 <span>Mitarbeiter *</span>
                 <input id="employee-search" type="search" placeholder="Name suchen..." autocomplete="off" />
+              </label>
+              <label class="field field-full">
+                <span>Auswahl *</span>
                 <select id="employee" required></select>
               </label>
+              <div class="target-date-line">
+                <span>Bestelltermin</span>
+                <strong id="target-date-label"></strong>
+              </div>
+            </div>
 
-              <div id="selected-item-card" class="selected-order-card empty"></div>
+            <section class="composer-card" id="composer-card">
+              <div class="composer-empty">
+                <strong>Noch kein Gericht ausgewählt</strong>
+                <p>Tippe links auf eine Speisekarten-Kachel. Danach kannst du den Wunschtext direkt diesem Gericht zuordnen.</p>
+              </div>
+            </section>
 
-              <label class="field">
-                <span>Preis</span>
-                <input id="price" type="text" readonly />
-              </label>
+            <label class="field field-full">
+              <span>Sonderwunsch zum gewählten Gericht</span>
+              <textarea id="notes" rows="3" placeholder="z. B. nur Fleisch, Mais, Soße, scharf"></textarea>
+            </label>
 
-              <label class="field">
-                <span>Bestellung gilt für</span>
-                <input id="target-date-label" type="text" readonly />
-              </label>
+            <div class="inline-actions">
+              <button id="add-to-cart-btn" class="primary-btn add-btn" type="button">In den Warenkorb</button>
+              <button id="cancel-edit-btn" class="secondary-btn hidden-inline" type="button">Bearbeiten abbrechen</button>
+            </div>
 
+            <section class="cart-section">
+              <div class="section-line">
+                <h3>Dein Warenkorb</h3>
+                <span id="cart-count-pill" class="soft-pill">0 Artikel</span>
+              </div>
+              <div id="cart-list" class="cart-list"></div>
+            </section>
+
+            <section class="payment-card">
+              <div class="summary-row">
+                <span>Summe Essen</span>
+                <strong id="cart-total">0,00 €</strong>
+              </div>
               <label class="field field-full">
-                <span>Sonderwunsch / Text</span>
-                <textarea id="notes" rows="4" placeholder="Beispiel: nur Fleisch, Mais, Soße, extra scharf"></textarea>
-              </label>
-
-              <label class="field">
                 <span>Bezahlt in Euro *</span>
                 <input
                   id="amount-paid"
@@ -82,33 +107,15 @@
                   required
                 />
               </label>
+              <div id="payment-hint" class="payment-hint">Lege zuerst mindestens ein Gericht in den Warenkorb.</div>
+            </section>
 
-              <div class="field align-end">
-                <div id="payment-hint" class="payment-hint">Preis erscheint nach Auswahl des Gerichts.</div>
-              </div>
-
-              <div class="field field-full notice-box">
-                <strong>Hinweis:</strong>
-                Eine vorhandene Bestellung vom gleichen Mitarbeiter für denselben Termin wird überschrieben. So kann jeder seine Auswahl noch ändern.
-              </div>
-
-              <div class="field field-full submit-row">
-                <button class="primary-btn" type="submit">Bestellung absenden</button>
-                <span id="submit-message" class="inline-message"></span>
-              </div>
-            </form>
-          </section>
-        </section>
-
-        <section class="card menu-browser-card">
-          <div class="card-head compact-gap">
-            <div>
-              <h2>Speisekarte</h2>
-              <p>Die komplette Karte ist nach Kategorien aufgebaut. Einfach ein Gericht antippen.</p>
+            <div class="field field-full submit-row submit-column-on-mobile">
+              <button class="primary-btn wide-btn" type="submit">Warenkorb speichern</button>
+              <span id="submit-message" class="inline-message"></span>
             </div>
-          </div>
-          <div id="menu-sections" class="menu-sections"></div>
-        </section>
+          </form>
+        </aside>
       </main>
     </div>
 

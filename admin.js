@@ -9,6 +9,9 @@ import {
   formatEuro,
   getAdminPinSessionKey,
   getAdminSessionKey,
+  getOrderItemCount,
+  getOrderItems,
+  getOrderTotal,
   getOrderWindow,
   hasLiveApi
 } from './shared.js';
@@ -111,37 +114,53 @@ function renderOrders() {
     return;
   }
 
-  const total = currentOrders.reduce((sum, order) => sum + Number(order.price || 0), 0);
+  const total = currentOrders.reduce((sum, order) => sum + getOrderTotal(order), 0);
   const paid = currentOrders.reduce((sum, order) => sum + Number(order.amount_paid || 0), 0);
   const change = paid - total;
+  const itemCount = currentOrders.reduce((sum, order) => sum + getOrderItemCount(order), 0);
 
-  statOrders.textContent = String(currentOrders.length);
+  statOrders.textContent = `${currentOrders.length} / ${itemCount}`;
   statTotal.textContent = formatEuro(total);
   statPaid.textContent = formatEuro(paid);
   statChange.textContent = formatEuro(change);
 
   ordersList.innerHTML = currentOrders
-    .map(
-      (order) => `
+    .map((order) => {
+      const items = getOrderItems(order);
+      const itemsMarkup = items
+        .map(
+          (item) => `
+            <div class="order-line-item">
+              <div>
+                <strong>${escapeHtml(item.menu_item_id ? `${item.menu_item_id}. ${item.menu_item_name}` : item.menu_item_name)}</strong>
+                <div class="order-line-meta">${escapeHtml(item.category || '')}</div>
+                ${item.notes ? `<div class="order-line-note">Wunsch: ${escapeHtml(item.notes)}</div>` : ''}
+              </div>
+              <span>${formatEuro(item.price)}</span>
+            </div>
+          `
+        )
+        .join('');
+
+      return `
         <article class="order-card">
           <div class="order-main">
             <div>
               <h3>${escapeHtml(order.employee_name)}</h3>
-              <p>${escapeHtml(order.menu_item_id ? `${order.menu_item_id}. ${order.menu_item_name}` : order.menu_item_name)}</p>
+              <p>${items.length} ${items.length === 1 ? 'Artikel' : 'Artikel'} im Warenkorb</p>
             </div>
-            <div class="order-price">${formatEuro(order.price)}</div>
+            <div class="order-price">${formatEuro(getOrderTotal(order))}</div>
           </div>
+          <div class="order-lines">${itemsMarkup}</div>
           <div class="order-meta">
-            <span><strong>Kategorie:</strong> ${escapeHtml(order.category)}</span>
             <span><strong>Bezahlt:</strong> ${formatEuro(order.amount_paid)}</span>
             <span><strong>Termin:</strong> ${formatDate(order.target_order_date)}</span>
             <span><strong>Stand:</strong> ${formatDateTime(order.updated_at || order.created_at)}</span>
           </div>
-          ${order.notes ? `<div class="order-notes"><strong>Wunsch:</strong> ${escapeHtml(order.notes)}</div>` : ''}
-          <div class="order-actions"><button class="danger-btn" type="button" data-delete-id="${escapeHtml(order.id)}">Löschen</button></div>
+          <div class="order-actions"><button class="danger-btn" type="button" data-delete-id="${escapeHtml(order.id)}">Bestellung löschen</button></div>
         </article>
-      `
-    )
+      `;
+    })
     .join('');
 
   ordersList.querySelectorAll('[data-delete-id]').forEach((button) => {
@@ -149,7 +168,7 @@ function renderOrders() {
       const id = button.dataset.deleteId;
       try {
         await deleteOrder(id, getStoredPin());
-        actionMessage.textContent = 'Eintrag gelöscht.';
+        actionMessage.textContent = 'Bestellung gelöscht.';
         await loadOrders(true);
       } catch (error) {
         console.error(error);

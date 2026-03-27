@@ -42,7 +42,7 @@ function cleanAmount(value) {
 function slugify(value) {
   return String(value || '')
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
@@ -73,18 +73,47 @@ async function readOrder(store, key) {
   }
 }
 
+function normalizeItems(body) {
+  if (Array.isArray(body.items) && body.items.length) {
+    return body.items.map((item, index) => ({
+      cart_item_id: cleanText(item.cart_item_id, 80) || `item-${index + 1}`,
+      category: cleanText(item.category, 80),
+      menu_item_id: cleanText(item.menu_item_id, 40),
+      menu_item_name: cleanText(item.menu_item_name, 180),
+      price: cleanAmount(item.price),
+      notes: cleanText(item.notes, 600)
+    }));
+  }
+
+  const category = cleanText(body.category, 80);
+  const menu_item_id = cleanText(body.menu_item_id, 40);
+  const menu_item_name = cleanText(body.menu_item_name, 180);
+
+  if (!category || !menu_item_id || !menu_item_name) {
+    return [];
+  }
+
+  return [
+    {
+      cart_item_id: cleanText(body.cart_item_id, 80) || 'item-1',
+      category,
+      menu_item_id,
+      menu_item_name,
+      price: cleanAmount(body.price),
+      notes: cleanText(body.notes, 600)
+    }
+  ];
+}
+
 async function handleCreate(event) {
   const store = getStoreInstance();
   const body = JSON.parse(event.body || '{}');
 
   const employee_name = cleanText(body.employee_name, 120);
-  const category = cleanText(body.category, 80);
-  const menu_item_id = cleanText(body.menu_item_id, 40);
-  const menu_item_name = cleanText(body.menu_item_name, 180);
-  const notes = cleanText(body.notes, 600);
   const target_order_date = cleanText(body.target_order_date, 10);
+  const items = normalizeItems(body);
 
-  if (!employee_name || !category || !menu_item_id || !menu_item_name) {
+  if (!employee_name || !items.length) {
     return json(400, { error: 'Pflichtfelder fehlen.' });
   }
 
@@ -92,19 +121,16 @@ async function handleCreate(event) {
     return json(400, { error: 'Ungültiges Bestelldatum.' });
   }
 
-  const price = cleanAmount(body.price);
   const amount_paid = cleanAmount(body.amount_paid);
+  const total_price = Number(items.reduce((sum, item) => sum + Number(item.price || 0), 0).toFixed(2));
   const id = buildOrderKey(employee_name, target_order_date);
   const existing = await readOrder(store, id);
 
   const payload = {
     id,
     employee_name,
-    category,
-    menu_item_id,
-    menu_item_name,
-    price,
-    notes,
+    items,
+    total_price,
     amount_paid,
     target_order_date,
     created_at: existing?.created_at || new Date().toISOString(),
