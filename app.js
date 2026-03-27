@@ -1,4 +1,4 @@
-import { employees, menuItems } from './data.js';
+import { categoryMedia, employees, menuItems } from './data.js';
 import { config, createOrder, formatDate, formatEuro, getOrderWindow, hasLiveApi } from './shared.js';
 
 const employeeSearch = document.querySelector('#employee-search');
@@ -28,33 +28,11 @@ function setModeBadge() {
   modeBadge.classList.toggle('mode-demo', !hasLiveApi());
 }
 
-function getCategoryIcon(categoryName) {
-  const mapping = {
-    Döner: '🥙',
-    Box: '🍟',
-    Lahmacun: '🌯',
-    Pide: '🫓',
-    Seele: '🥖',
-    Specials: '🍗',
-    Pizzen: '🍕',
-    Getränke: '🥤',
-    'Warme Getränke': '☕'
+function getCategoryMeta(categoryName) {
+  return categoryMedia[categoryName] || {
+    image: 'https://images.unsplash.com/photo-1699728088614-7d1d4277414b?auto=format&fit=crop&w=1200&q=80',
+    tagline: 'Frisch zubereitet und direkt auswählbar'
   };
-  return mapping[categoryName] || '🍽️';
-}
-
-function getItemVisual(itemName, categoryName) {
-  const name = `${itemName} ${categoryName}`.toLowerCase();
-  if (name.includes('pizza')) return '🍕';
-  if (name.includes('falafel')) return '🧆';
-  if (name.includes('salat')) return '🥗';
-  if (name.includes('pommes')) return '🍟';
-  if (name.includes('kaffee') || name.includes('espresso') || name.includes('cappuccino') || name.includes('tee')) return '☕';
-  if (name.includes('cola') || name.includes('fanta') || name.includes('sprite') || name.includes('ayran') || name.includes('red bull')) return '🥤';
-  if (name.includes('pide')) return '🫓';
-  if (name.includes('lahmacun') || name.includes('yufka') || name.includes('döner') || name.includes('kebap')) return '🥙';
-  if (name.includes('nuggets') || name.includes('schnitzel')) return '🍗';
-  return getCategoryIcon(categoryName);
 }
 
 function renderDeadlineBox() {
@@ -98,10 +76,11 @@ function updateSelectedCard() {
   if (!selected) {
     selectedItemCard.className = 'selected-order-card empty';
     selectedItemCard.innerHTML = `
-      <div class="selected-order-media">🍽️</div>
-      <div>
+      <div class="selected-order-image selected-order-image-empty"></div>
+      <div class="selected-order-copy">
+        <span class="selected-order-kicker">Noch keine Auswahl</span>
         <strong>Noch nichts ausgewählt</strong>
-        <p>Tippe unten ein Gericht an.</p>
+        <p>Tippe unten ein Gericht an. Die Kategorie bleibt fest sichtbar.</p>
       </div>
     `;
     priceInput.value = '';
@@ -112,13 +91,19 @@ function updateSelectedCard() {
   const { category, item } = selected;
   const paid = Number(amountPaidInput.value || 0);
   const difference = Number.isFinite(paid) ? paid - Number(item.price) : 0;
+  const media = getCategoryMeta(category.category);
 
   selectedItemCard.className = 'selected-order-card';
   selectedItemCard.innerHTML = `
-    <div class="selected-order-media">${getItemVisual(item.name, category.category)}</div>
-    <div>
+    <div class="selected-order-image" style="background-image:url('${media.image}')"></div>
+    <div class="selected-order-copy">
+      <span class="selected-order-kicker">${category.category}</span>
       <strong>${item.name}</strong>
-      <p>${category.category} · ${formatEuro(item.price)}</p>
+      <p>${media.tagline}</p>
+      <div class="selected-order-price-row">
+        <span class="price-chip">${formatEuro(item.price)}</span>
+        <span class="code-chip">Nr. ${item.id}</span>
+      </div>
     </div>
   `;
 
@@ -153,6 +138,7 @@ function renderMenu() {
   menuItems.forEach((category) => {
     const section = document.createElement('section');
     section.className = 'menu-section';
+    const media = getCategoryMeta(category.category);
 
     const cards = category.items
       .map(
@@ -164,26 +150,27 @@ function renderMenu() {
             data-category="${category.category}"
             data-item-id="${item.id}"
           >
-            <div class="menu-tile-media">${getItemVisual(item.name, category.category)}</div>
-            <div class="menu-tile-content">
-              <div class="menu-tile-top">
-                <span class="menu-tile-code">${item.id}</span>
-                <span class="menu-tile-price">${formatEuro(item.price)}</span>
-              </div>
-              <strong>${item.name}</strong>
-              <span class="menu-tile-category">${category.category}</span>
+            <div class="menu-tile-top">
+              <span class="menu-tile-code">Nr. ${item.id}</span>
+              <span class="menu-tile-price">${formatEuro(item.price)}</span>
             </div>
+            <strong>${item.name}</strong>
+            <span class="menu-tile-meta">${category.category}</span>
           </button>
         `
       )
       .join('');
 
     section.innerHTML = `
-      <div class="menu-section-head">
-        <div class="menu-section-icon">${getCategoryIcon(category.category)}</div>
-        <div>
-          <h3>${category.category}</h3>
-          <p>${category.items.length} Gerichte</p>
+      <div class="menu-section-cover" style="background-image:url('${media.image}')">
+        <div class="menu-section-overlay"></div>
+        <div class="menu-section-head">
+          <div>
+            <span class="section-kicker">Kategorie</span>
+            <h3>${category.category}</h3>
+            <p>${media.tagline}</p>
+          </div>
+          <span class="section-count">${category.items.length} Gerichte</span>
         </div>
       </div>
       <div class="menu-tiles">${cards}</div>

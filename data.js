@@ -24,81 +24,110 @@ export const employees = [
   'Wössner, Wolfgang'
 ].sort((a, b) => a.localeCompare(b, 'de'));
 
+export const categoryMedia = {
+  Döner: {
+    image:
+      'https://images.unsplash.com/photo-1699728088614-7d1d4277414b?auto=format&fit=crop&w=1200&q=80',
+    tagline: 'Klassiker mit Dönerfleisch, Salat und Sauce'
+  },
+  Box: {
+    image:
+      'https://images.unsplash.com/photo-1773620494884-940e0db95e46?auto=format&fit=crop&w=1200&q=80',
+    tagline: 'Schnelle Lunch-Optionen mit Pommes und Toppings'
+  },
+  Lahmacun: {
+    image:
+      'https://images.unsplash.com/photo-1773620494884-940e0db95e46?auto=format&fit=crop&w=1200&q=80',
+    tagline: 'Gerollt, würzig und perfekt für Sonderwünsche'
+  },
+  Pide: {
+    image:
+      'https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?auto=format&fit=crop&w=1200&q=80',
+    tagline: 'Ofenfrisch, herzhaft und ideal für die Mittagspause'
+  },
+  Seele: {
+    image:
+      'https://images.unsplash.com/photo-1593504049359-74330189a345?auto=format&fit=crop&w=1200&q=80',
+    tagline: 'Belegte Brotspezialitäten im Streetfood-Stil'
+  },
+  Specials: {
+    image:
+      'https://images.unsplash.com/photo-1699728088614-7d1d4277414b?auto=format&fit=crop&w=1200&q=80',
+    tagline: 'Snack- und Tellergerichte für mehr Auswahl'
+  },
+  Pizzen: {
+    image:
+      'https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?auto=format&fit=crop&w=1200&q=80',
+    tagline: 'Pizza-Klassiker und Spezialitäten aus dem Ofen'
+  },
+  Getränke: {
+    image:
+      'https://images.unsplash.com/photo-1585068873189-e2df7346dca0?auto=format&fit=crop&w=1200&q=80',
+    tagline: 'Kaltgetränke, Softdrinks und Ayran'
+  },
+  'Warme Getränke': {
+    image:
+      'https://images.unsplash.com/photo-1658646479124-bc31e6849497?auto=format&fit=crop&w=1200&q=80',
+    tagline: 'Kaffee, Cappuccino, Espresso und Tee'
+  }
+};
+
 export const menuItems = [
   {
     category: 'Döner',
     items: [
-      { id: '01', name: 'Döner klein', price: 5.0 },
-      { id: '02', name: 'Döner Kebap', price: 8.0 },
-      { id: '03', name: 'Döner Kebap XXL', price: 13.0 },
-      { id: '04', name: 'Vegetarisch mit Käse', price: 8.0 },
-      { id: '05', name: 'Vegetarisch XXL mit Käse', price: 13.0 },
-      { id: '07', name: 'Yufka Kebap zusammengerollt', price: 9.0 },
-      { id: '08', name: 'Yufka Spezial mit Pommes und Salat', price: 10.0 },
-      { id: '09', name: 'Yufka Vegetarisch mit Käse', price: 9.0 },
-      { id: '10', name: 'Falafel Yufka mit Salat', price: 9.0 },
-      { id: '11', name: 'Döner Teller mit Salat und Pommes', price: 13.0 },
-      { id: '12', name: 'Falafel Teller mit Salat und Pommes', price: 13.0 },
-      { id: '13', name: 'Dönerfleisch 1 Kg nur zum Mitnehmen', price: 32.0 }
+      { id: '01', name: 'Döner Kebap', price: 8.0 },
+      { id: '02', name: 'Dürüm / Yufka', price: 9.0 },
+      { id: '03', name: 'Döner Teller', price: 12.0 },
+      { id: '04', name: 'Vegetarischer Döner', price: 7.5 },
+      { id: '05', name: 'Falafel im Brot', price: 7.5 }
     ]
   },
   {
     category: 'Box',
     items: [
-      { id: '15', name: 'Döner Box mit Pommes', price: 8.0 },
-      { id: '16', name: 'Döner Box mit Salat', price: 8.0 },
-      { id: '17', name: 'Döner Box mit Pommes und Salat', price: 9.0 },
-      { id: '18', name: 'Döner Box nur mit Fleisch', price: 11.0 },
-      { id: '19', name: 'Vegi Box mit Pommes, Käse und Salat', price: 8.0 },
-      { id: '20', name: 'Falafel Box mit Pommes und Salat', price: 8.0 },
-      { id: '21', name: 'Pommes Box', price: 5.0 }
+      { id: '06', name: 'Döner Box', price: 8.5 },
+      { id: '07', name: 'Falafel Box', price: 8.5 },
+      { id: '08', name: 'Pommes', price: 4.5 },
+      { id: '09', name: 'Pommes mit Käse', price: 5.5 }
     ]
   },
   {
     category: 'Lahmacun',
     items: [
-      { id: '25', name: 'Lahmacun gerollt', price: 7.0 },
-      { id: '26', name: 'Lahmacun mit Salat gerollt', price: 9.0 },
-      { id: '27', name: 'Lahmacun Spezial mit Salat und Dönerfleisch gerollt', price: 10.0 },
-      { id: '28', name: 'Fladenbrot', price: 2.5 },
-      { id: '29', name: 'Ketchup oder Mayonnaise', price: 0.5 },
-      { id: '30', name: 'Extra Soße', price: 1.0 },
-      { id: '31', name: 'Extra Fleisch', price: 2.0 },
-      { id: '32', name: 'Käse', price: 1.0 },
-      { id: '33', name: 'Pizzateig', price: 1.0 }
+      { id: '10', name: 'Lahmacun', price: 7.5 },
+      { id: '11', name: 'Lahmacun mit Salat', price: 8.5 },
+      { id: '12', name: 'Lahmacun mit Dönerfleisch', price: 9.5 },
+      { id: '13', name: 'Lahmacun Spezial', price: 10.0 }
     ]
   },
   {
     category: 'Pide',
     items: [
-      { id: '35', name: 'Pide mit Hackfleisch, Käse, Ei', price: 10.0 },
-      { id: '36', name: 'Pide mit Hackfleisch, Käse', price: 9.0 },
-      { id: '37', name: 'Pide mit Käse', price: 8.5 },
-      { id: '38', name: 'Pide mit Käse, Spinat und Ei', price: 11.0 },
-      { id: '39', name: 'Pide mit Spinat, Käse, Ei, dazu Beilagensalat', price: 15.0 },
-      { id: '40', name: 'Pide mit Dönerfleisch und Käse', price: 12.0 },
-      { id: '41', name: 'Pide mit Sucuk und Käse', price: 11.0 },
-      { id: '42', name: 'Pide mit Putenschinken, Rindersalami, Pilzen', price: 11.0 }
+      { id: '14', name: 'Pide mit Käse', price: 8.5 },
+      { id: '15', name: 'Pide mit Spinat und Käse', price: 9.5 },
+      { id: '16', name: 'Pide mit Hackfleisch', price: 10.0 },
+      { id: '17', name: 'Pide mit Sucuk und Käse', price: 10.5 }
     ]
   },
   {
     category: 'Seele',
     items: [
-      { id: '50', name: 'Seele Sucuk', price: 11.0 },
-      { id: '51', name: 'Seele vegetarisch', price: 10.0 },
-      { id: '52', name: 'Seele Issa', price: 11.5 },
-      { id: '53', name: 'Seele König (scharf)', price: 12.5 }
+      { id: '18', name: 'Seele mit Dönerfleisch', price: 8.5 },
+      { id: '19', name: 'Seele mit Käse', price: 7.5 },
+      { id: '20', name: 'Seele Spezial', price: 9.5 }
     ]
   },
   {
     category: 'Specials',
     items: [
-      { id: '54', name: 'Putenschnitzel mit Salat und Pommes', price: 11.0 },
-      { id: '55', name: 'Chicken Nuggets (9 Stück) mit Pommes', price: 10.0 },
-      { id: '56', name: 'Gemischter Salat klein', price: 7.0 },
-      { id: '57', name: 'Gemischter Salat groß', price: 8.0 },
-      { id: '58', name: 'Thunfisch Salat', price: 10.0 },
-      { id: '59', name: 'Gemischter Salat mit Dönerfleisch', price: 10.0 }
+      { id: '21', name: 'Chicken Nuggets mit Pommes', price: 8.5 },
+      { id: '22', name: 'Schnitzel mit Pommes', price: 10.5 },
+      { id: '23', name: 'Falafel Teller', price: 11.0 },
+      { id: '24', name: 'Gemischter Salat klein', price: 7.0 },
+      { id: '25', name: 'Gemischter Salat groß', price: 8.0 },
+      { id: '26', name: 'Thunfisch Salat', price: 10.0 },
+      { id: '27', name: 'Gemischter Salat mit Dönerfleisch', price: 10.0 }
     ]
   },
   {
@@ -125,7 +154,11 @@ export const menuItems = [
       { id: '79', name: 'König mit Weichkäse, Kebap, Zwiebeln, Peperoni, Tomaten (29 cm)', price: 13.0 },
       { id: '80', name: 'Vier Jahreszeiten (29 cm)', price: 11.0 },
       { id: '81', name: 'Grandiose mit frischen Tomaten, Weichkäse, Zwiebeln und Oliven (29 cm)', price: 11.0 },
-      { id: '82', name: 'Spezial mit Champignons, Artischocken, Oliven, Spargel, Salami, Formvorderschinken, Paprika (29 cm)', price: 13.5 },
+      {
+        id: '82',
+        name: 'Spezial mit Champignons, Artischocken, Oliven, Spargel, Salami, Formvorderschinken, Paprika (29 cm)',
+        price: 13.5
+      },
       { id: '83', name: 'Frutti di Mare mit Meeresfrüchten und Knoblauchgewürz (29 cm)', price: 14.0 },
       { id: '84', name: 'Napoli mit Sardellen, Oliven, Zwiebeln (29 cm)', price: 13.0 },
       { id: '85', name: 'Romana mit Schinken, Salami (29 cm)', price: 10.0 },

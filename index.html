@@ -4,29 +4,28 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kebap-Bestellung</title>
-    <meta name="theme-color" content="#101828" />
+    <meta name="theme-color" content="#151311" />
     <link rel="stylesheet" href="./styles.css" />
     <script src="./config.js"></script>
   </head>
   <body>
     <div class="app-shell">
-      <header class="hero kiosk-hero">
-        <div>
-          <span class="eyebrow">Self-Order Terminal</span>
+      <header class="hero premium-hero">
+        <div class="hero-copy">
+          <span class="eyebrow">Digitales Bestellterminal</span>
           <h1>Kebap Bestellung</h1>
           <p class="lead">
-            Erst Mitarbeiter wählen, dann unten ein Gericht antippen. Die Kategorien bleiben fest sichtbar wie an einem Bestellterminal.
+            Modernes Self-Order Design mit festen Kategorien, klarer Mitarbeiterauswahl und einer Speisekarte,
+            die sich wie ein professionelles Schnellrestaurant-Terminal bedienen lässt.
           </p>
           <div class="hero-tags">
-            <span class="hero-tag">Kiosk Look</span>
-            <span class="hero-tag">Mobil optimiert</span>
-            <span class="hero-tag">WhatsApp Export</span>
+            <span class="hero-tag">Edles UI</span>
+            <span class="hero-tag">Touch optimiert</span>
+            <span class="hero-tag">Für QR-Bestellung</span>
           </div>
         </div>
-        <div class="hero-visual" aria-hidden="true">
-          <div class="visual-card visual-card-main">🍔</div>
-          <div class="visual-card visual-card-side">🍕</div>
-          <div class="visual-card visual-card-side alt">🥙</div>
+        <div class="hero-photo-frame" aria-hidden="true">
+          <div class="hero-photo"></div>
         </div>
       </header>
 
@@ -34,13 +33,14 @@
         <aside class="card checkout-panel sticky-card">
           <div class="card-head">
             <div>
-              <h2>Deine Auswahl</h2>
-              <p>Links auswählen, rechts direkt absenden.</p>
+              <span class="section-kicker">Schritt 1</span>
+              <h2>Bestellung konfigurieren</h2>
+              <p>Mitarbeiter wählen, Gericht auswählen, Betrag eintragen und absenden.</p>
             </div>
             <a class="ghost-link" href="./azubi.html">Azubi-Seite</a>
           </div>
 
-          <div id="deadline-box" class="status-box kiosk-status"></div>
+          <div id="deadline-box" class="status-box premium-status"></div>
 
           <form id="order-form" class="form-grid checkout-grid">
             <label class="field field-full">
@@ -56,13 +56,7 @@
 
             <div class="field field-full">
               <span>Ausgewähltes Gericht *</span>
-              <div id="selected-item-card" class="selected-order-card empty">
-                <div class="selected-order-media">🍽️</div>
-                <div>
-                  <strong>Noch nichts ausgewählt</strong>
-                  <p>Tippe unten ein Gericht an.</p>
-                </div>
-              </div>
+              <div id="selected-item-card" class="selected-order-card empty"></div>
             </div>
 
             <label class="field">
@@ -109,15 +103,16 @@
         <section class="card menu-browser">
           <div class="card-head card-head-stack-mobile">
             <div>
+              <span class="section-kicker">Schritt 2</span>
               <h2>Speisekarte</h2>
-              <p>Kategorien sind fest sichtbar. Gericht einfach antippen.</p>
+              <p>Kategorien sind fest sichtbar. Du tippst nur noch das gewünschte Gericht an.</p>
             </div>
             <span id="mode-badge" class="mode-badge"></span>
           </div>
 
           <div class="menu-intro-row">
-            <div class="menu-pill">Terminal Design</div>
-            <div class="menu-pill">Große Touch-Flächen</div>
+            <div class="menu-pill">Feste Kategorien</div>
+            <div class="menu-pill">Professionelles Layout</div>
             <div class="menu-pill">Schnelle Auswahl</div>
           </div>
 
