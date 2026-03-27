@@ -127,7 +127,7 @@ function renderOrders() {
           <div class="order-main">
             <div>
               <h3>${escapeHtml(order.employee_name)}</h3>
-              <p>${escapeHtml(order.menu_item_name)}</p>
+              <p>${escapeHtml(order.menu_item_id ? `${order.menu_item_id}. ${order.menu_item_name}` : order.menu_item_name)}</p>
             </div>
             <div class="order-price">${formatEuro(order.price)}</div>
           </div>

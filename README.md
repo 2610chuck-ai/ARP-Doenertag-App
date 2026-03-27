@@ -1,46 +1,34 @@
-# Kebab-Bestellung – Netlify Only
+# Kebap-Bestellung – Netlify only
 
-Diese Version braucht **kein Supabase**.
+Diese Version ist fertig für Netlify:
+- Mitarbeiter wählen
+- komplette Speisekarte antippen
+- Sonderwünsche eintragen
+- bezahlten Betrag erfassen
+- Donnerstag 10:00 Uhr Logik
+- Azubi-Seite mit PIN
+- WhatsApp-Export
+- Datenspeicherung über Netlify Functions + Netlify Blobs
 
-## Architektur
-- `index.html` = Mitarbeiter-Bestellung
-- `azubi.html` = Azubi-Verwaltung
-- `netlify/functions/orders.js` = API für Speichern / Laden / Löschen
-- `Netlify Blobs` = Datenspeicher für die Bestellungen
+## Start
 
-## Was du in Netlify brauchst
-Nur **eine** Umgebungsvariable ist Pflicht:
-- `ADMIN_PIN`
-
-Optional:
-- eigene Domain
-- WhatsApp-Nummer in `config.js`
-
-## Schnellstart
 1. Projekt nach GitHub hochladen
 2. In Netlify importieren
-3. In Netlify unter **Project configuration > Environment variables** setzen:
+3. Umgebungsvariable setzen:
    - `ADMIN_PIN=2610`
-4. Neu deployen
-5. In `config.js` `whatsappNumber` eintragen
+4. In `config.js` die WhatsApp-Nummer eintragen
+5. Deploy auslösen
 
-## Wichtige Seiten
-- Mitarbeiter: `/index.html`
-- Azubi: `/azubi.html`
+## Wichtige Dateien
 
-## Hinweise
-- Pro Mitarbeiter und Bestelltermin gibt es genau **eine** Bestellung.
-- Neue Eingabe überschreibt die alte Bestellung für denselben Donnerstag.
-- Nach Donnerstag 10:00 Uhr geht die Bestellung automatisch auf den nächsten Donnerstag.
-- Der WhatsApp-Button erzeugt aus der Azubi-Seite eine fertige Sammel-Nachricht.
+- `index.html` – Bestellseite
+- `azubi.html` – Verwaltungsseite
+- `data.js` – Mitarbeiter und Speisekarte
+- `app.js` – Logik der Bestellseite
+- `admin.js` – Azubi-Verwaltung
+- `netlify/functions/orders.js` – Speicherung / Laden / Löschen
 
-## Lokal testen
-Du kannst lokal im Browser auch mit `demoMode: true` testen.
-Dann werden Daten nur im Browser gespeichert.
+## Hinweis
 
-
-## Update März 2026
-- Bestellterminal-Design mit festen Kategorien
-- Kategorien nicht mehr auswählbar, sondern dauerhaft sichtbar
-- Fix für das Datum des nächsten Donnerstags
-- Größere Touch-Karten für mobile Nutzung
+Wenn `demoMode` in `config.js` auf `true` steht, wird lokal im Browser gespeichert.
+Für den Live-Betrieb auf Netlify sollte `demoMode: false` aktiv bleiben.

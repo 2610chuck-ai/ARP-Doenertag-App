@@ -15,6 +15,8 @@ const menuSections = document.querySelector('#menu-sections');
 const selectedItemCard = document.querySelector('#selected-item-card');
 const paymentHint = document.querySelector('#payment-hint');
 
+const DEFAULT_NOTE_PLACEHOLDER = 'z. B. ohne Zwiebeln, extra Soße, scharf';
+
 const windowInfo = getOrderWindow();
 let filteredEmployees = [...employees];
 let selectedCategory = '';
@@ -35,6 +37,26 @@ function getCategoryMeta(categoryName) {
   };
 }
 
+function parsePaidValue(rawValue) {
+  const normalized = String(rawValue ?? '').trim().replace(',', '.');
+
+  if (!normalized) {
+    return { empty: true, valid: false, value: null };
+  }
+
+  const value = Number(normalized);
+
+  if (!Number.isFinite(value) || value < 0) {
+    return { empty: false, valid: false, value: null };
+  }
+
+  return { empty: false, valid: true, value };
+}
+
+function getDisplayName(item) {
+  return item.subtitle ? `${item.name} – ${item.subtitle}` : item.name;
+}
+
 function renderDeadlineBox() {
   const label = formatDate(windowInfo.targetThursday);
   const warning = windowInfo.nextWeekWarning
@@ -53,12 +75,14 @@ function renderDeadlineBox() {
 function renderEmployees(list) {
   const previous = employeeSelect.value;
   employeeSelect.innerHTML = '<option value="">Bitte Mitarbeiter wählen</option>';
+
   list.forEach((employee) => {
     const option = document.createElement('option');
     option.value = employee;
     option.textContent = employee;
     employeeSelect.appendChild(option);
   });
+
   if (previous && list.includes(previous)) {
     employeeSelect.value = previous;
   }
@@ -80,17 +104,19 @@ function updateSelectedCard() {
       <div class="selected-order-copy">
         <span class="selected-order-kicker">Noch keine Auswahl</span>
         <strong>Noch nichts ausgewählt</strong>
-        <p>Tippe unten ein Gericht an. Die Kategorie bleibt fest sichtbar.</p>
+        <p>Tippe rechts ein Gericht an. Die Kategorie bleibt fest sichtbar.</p>
       </div>
     `;
     priceInput.value = '';
+    notesInput.placeholder = DEFAULT_NOTE_PLACEHOLDER;
     paymentHint.textContent = 'Preis erscheint nach Auswahl des Gerichts.';
     return;
   }
 
   const { category, item } = selected;
-  const paid = Number(amountPaidInput.value || 0);
-  const difference = Number.isFinite(paid) ? paid - Number(item.price) : 0;
+  const paidState = parsePaidValue(amountPaidInput.value);
+  const paid = paidState.valid ? paidState.value : 0;
+  const difference = paid - Number(item.price);
   const media = getCategoryMeta(category.category);
 
   selectedItemCard.className = 'selected-order-card';
@@ -99,6 +125,7 @@ function updateSelectedCard() {
     <div class="selected-order-copy">
       <span class="selected-order-kicker">${category.category}</span>
       <strong>${item.name}</strong>
+      ${item.subtitle ? `<div class="selected-order-subtitle">${item.subtitle}</div>` : ''}
       <p>${media.tagline}</p>
       <div class="selected-order-price-row">
         <span class="price-chip">${formatEuro(item.price)}</span>
@@ -108,9 +135,12 @@ function updateSelectedCard() {
   `;
 
   priceInput.value = formatEuro(item.price);
+  notesInput.placeholder = item.notePlaceholder || DEFAULT_NOTE_PLACEHOLDER;
 
-  if (!amountPaidInput.value) {
+  if (paidState.empty) {
     paymentHint.textContent = 'Jetzt nur noch den bezahlten Betrag eintragen.';
+  } else if (!paidState.valid) {
+    paymentHint.textContent = 'Bitte einen gültigen Zahlbetrag eingeben.';
   } else if (difference >= 0) {
     paymentHint.textContent = `Voraussichtliches Rückgeld: ${formatEuro(difference)}`;
   } else {
@@ -155,6 +185,7 @@ function renderMenu() {
               <span class="menu-tile-price">${formatEuro(item.price)}</span>
             </div>
             <strong>${item.name}</strong>
+            ${item.subtitle ? `<div class="menu-tile-subtitle">${item.subtitle}</div>` : ''}
             <span class="menu-tile-meta">${category.category}</span>
           </button>
         `
@@ -210,20 +241,28 @@ form.addEventListener('submit', async (event) => {
     return;
   }
 
-  const paid = Number(amountPaidInput.value);
-  if (Number.isNaN(paid) || paid < 0) {
+  const paidState = parsePaidValue(amountPaidInput.value);
+
+  if (paidState.empty) {
+    submitMessage.textContent = 'Bitte den bezahlten Betrag eintragen.';
+    return;
+  }
+
+  if (!paidState.valid) {
     submitMessage.textContent = 'Bitte einen gültigen Zahlbetrag eintragen.';
     return;
   }
+
+  const displayName = getDisplayName(selected.item);
 
   const order = {
     employee_name: employeeName,
     category: selected.category.category,
     menu_item_id: selected.item.id,
-    menu_item_name: selected.item.name,
+    menu_item_name: displayName,
     price: Number(selected.item.price),
     notes: notesInput.value.trim(),
-    amount_paid: paid,
+    amount_paid: paidState.value,
     target_order_date: windowInfo.targetThursdayDate
   };
 
@@ -235,6 +274,7 @@ form.addEventListener('submit', async (event) => {
         : 'Bestellung gespeichert. Auf der Azubi-Seite ist sie jetzt sichtbar.';
 
     notesInput.value = '';
+    notesInput.placeholder = DEFAULT_NOTE_PLACEHOLDER;
     amountPaidInput.value = '';
     selectedCategory = '';
     selectedItemId = '';

@@ -71,32 +71,30 @@ export function getOrderWindow(now = new Date()) {
   const current = new Date(now);
   const weekday = current.getDay();
   const thursdayIndex = 4;
-
-  let daysUntilThursday;
-  if (weekday < thursdayIndex) {
-    daysUntilThursday = thursdayIndex - weekday;
-  } else if (weekday === thursdayIndex) {
-    daysUntilThursday = 0;
-  } else {
-    daysUntilThursday = 7 - weekday + thursdayIndex;
-  }
+  const daysUntilThursday = (thursdayIndex - weekday + 7) % 7;
 
   const targetThursday = new Date(current);
   targetThursday.setDate(current.getDate() + daysUntilThursday);
   targetThursday.setHours(10, 0, 0, 0);
 
-  const isAfterCutoff = weekday === thursdayIndex && current > targetThursday;
-  if (isAfterCutoff) {
+  const isThursday = weekday === thursdayIndex;
+  const isAfterCutoff = isThursday && current > targetThursday;
+  const isPastThisWeek = weekday > thursdayIndex;
+
+  if (isAfterCutoff || isPastThisWeek) {
     targetThursday.setDate(targetThursday.getDate() + 7);
   }
 
-  const nextWeekWarning = weekday > thursdayIndex || isAfterCutoff;
+  const thisWeekThursday = new Date(current);
+  const daysToThisThursday = thursdayIndex - weekday;
+  thisWeekThursday.setDate(current.getDate() + daysToThisThursday);
+  thisWeekThursday.setHours(10, 0, 0, 0);
 
   return {
     now: current,
     targetThursday,
     targetThursdayDate: toLocalDateInputValue(targetThursday),
-    nextWeekWarning,
+    nextWeekWarning: current > thisWeekThursday,
     cutoffLabel: 'Donnerstag 10:00 Uhr'
   };
 }
@@ -108,7 +106,8 @@ export function buildWhatsAppText(orders, dateLabel) {
   lines.push('');
 
   orders.forEach((order, index) => {
-    lines.push(`${index + 1}. ${order.employee_name} - ${order.menu_item_name} (${formatEuro(order.price)})`);
+    const itemLabel = order.menu_item_id ? `${order.menu_item_id}. ${order.menu_item_name}` : order.menu_item_name;
+    lines.push(`${index + 1}. ${order.employee_name} - ${itemLabel} (${formatEuro(order.price)})`);
     if (order.notes) lines.push(`   Wunsch: ${order.notes}`);
     lines.push(`   Bezahlt: ${formatEuro(order.amount_paid)}`);
   });
