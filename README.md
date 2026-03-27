@@ -39,3 +39,10 @@ Für den Live-Betrieb auf Netlify sollte `demoMode: false` aktiv bleiben.
 - Sonderwunsch gehört jetzt pro Artikel in den Warenkorb
 - Warenkorb-Einträge können vor dem Speichern bearbeitet oder gelöscht werden
 - Azubi-Ansicht zeigt komplette Warenkörbe
+
+
+## Update: komplette Speisekarte + Bilder
+- Alle-Tab für die komplette Speisekarte
+- Gerichtsspezifische Food-Fotos auf den Kacheln
+- Warenkorb mit Bild, Bearbeiten und Löschen
+- Dariusz/Bogdan entfernt

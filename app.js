@@ -22,10 +22,12 @@ const amountPaidInput = document.querySelector('#amount-paid');
 const paymentHint = document.querySelector('#payment-hint');
 
 const DEFAULT_NOTE_PLACEHOLDER = 'z. B. ohne Zwiebeln, extra Soße, scharf';
+const ALL_CATEGORIES_KEY = '__all__';
 
 const windowInfo = getOrderWindow();
 let filteredEmployees = [...employees];
-let selectedCategory = menuItems[0]?.category || '';
+let activeCategoryFilter = ALL_CATEGORIES_KEY;
+let selectedItemCategory = '';
 let selectedItemId = '';
 let editingCartItemId = '';
 let cartItems = [];
@@ -40,9 +42,13 @@ function setModeBadge() {
 
 function getCategoryMeta(categoryName) {
   return categoryMedia[categoryName] || {
-    image: 'https://images.unsplash.com/photo-1699728088614-7d1d4277414b?auto=format&fit=crop&w=1200&q=80',
+    image: 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?auto=format&fit=crop&w=1200&q=80',
     tagline: 'Frisch zubereitet und direkt auswählbar'
   };
+}
+
+function getItemImage(categoryName, item) {
+  return item?.image || getCategoryMeta(categoryName).image;
 }
 
 function parsePaidValue(rawValue) {
@@ -94,25 +100,31 @@ function renderEmployees(list) {
   }
 }
 
-function getSelectedCategoryObject() {
-  return menuItems.find((entry) => entry.category === selectedCategory) || menuItems[0] || null;
+function getCategoryByName(name) {
+  return menuItems.find((entry) => entry.category === name) || null;
 }
 
 function findSelectedItem() {
-  const category = getSelectedCategoryObject();
+  const category = getCategoryByName(selectedItemCategory);
   const item = category?.items?.find((entry) => entry.id === selectedItemId);
   return category && item ? { category, item } : null;
 }
 
-function setSelection(categoryName, itemId) {
-  selectedCategory = categoryName;
+function setSelection(categoryName, itemId, keepFilter = true) {
+  selectedItemCategory = categoryName;
   selectedItemId = itemId;
+
+  if (!keepFilter) {
+    activeCategoryFilter = categoryName;
+  }
+
   renderCategoryTabs();
   renderMenuGrid();
   renderComposerCard();
 }
 
-function resetComposer(clearSelection = false) {
+function resetComposer(options = {}) {
+  const { clearSelection = false } = options;
   editingCartItemId = '';
   notesInput.value = '';
   notesInput.placeholder = DEFAULT_NOTE_PLACEHOLDER;
@@ -120,6 +132,7 @@ function resetComposer(clearSelection = false) {
   addToCartBtn.textContent = 'In den Warenkorb';
 
   if (clearSelection) {
+    selectedItemCategory = '';
     selectedItemId = '';
   }
 
@@ -127,16 +140,47 @@ function resetComposer(clearSelection = false) {
   renderMenuGrid();
 }
 
+function getFilteredCategories() {
+  const term = menuSearch.value.trim().toLowerCase();
+  const source = activeCategoryFilter === ALL_CATEGORIES_KEY
+    ? menuItems
+    : menuItems.filter((category) => category.category === activeCategoryFilter);
+
+  return source
+    .map((category) => ({
+      ...category,
+      items: category.items.filter((item) => {
+        if (!term) return true;
+        return [category.category, item.id, item.name, item.subtitle || '']
+          .join(' ')
+          .toLowerCase()
+          .includes(term);
+      })
+    }))
+    .filter((category) => category.items.length);
+}
+
 function renderCategoryTabs() {
-  categoryTabs.innerHTML = menuItems
+  const totalItems = menuItems.reduce((sum, category) => sum + category.items.length, 0);
+  const tabs = [
+    { key: ALL_CATEGORIES_KEY, label: 'Alle', count: totalItems },
+    ...menuItems.map((category) => ({
+      key: category.category,
+      label: category.category,
+      count: category.items.length
+    }))
+  ];
+
+  categoryTabs.innerHTML = tabs
     .map(
-      (category) => `
+      (tab) => `
         <button
           type="button"
-          class="category-tab ${category.category === selectedCategory ? 'is-active' : ''}"
-          data-category="${category.category}"
+          class="category-tab ${tab.key === activeCategoryFilter ? 'is-active' : ''}"
+          data-category="${tab.key}"
         >
-          ${category.category}
+          <span>${tab.label}</span>
+          <span class="tab-count">${tab.count}</span>
         </button>
       `
     )
@@ -144,60 +188,99 @@ function renderCategoryTabs() {
 
   categoryTabs.querySelectorAll('[data-category]').forEach((button) => {
     button.addEventListener('click', () => {
-      selectedCategory = button.dataset.category;
+      activeCategoryFilter = button.dataset.category;
       renderCategoryTabs();
       renderMenuGrid();
-      renderComposerCard();
     });
   });
 }
 
-function renderMenuGrid() {
-  const currentCategory = getSelectedCategoryObject();
-  if (!currentCategory) {
-    menuGrid.innerHTML = '<div class="empty-state">Keine Kategorien gefunden.</div>';
-    return;
-  }
-
-  const media = getCategoryMeta(currentCategory.category);
-  const term = menuSearch.value.trim().toLowerCase();
-  const items = currentCategory.items.filter((item) => {
-    if (!term) return true;
-    return [item.id, item.name, item.subtitle || ''].join(' ').toLowerCase().includes(term);
+function attachImageFallbacks(scope = document) {
+  scope.querySelectorAll('img[data-fallback]').forEach((img) => {
+    img.addEventListener(
+      'error',
+      () => {
+        const fallback = img.dataset.fallback;
+        if (fallback && img.src !== fallback) {
+          img.src = fallback;
+        }
+      },
+      { once: true }
+    );
   });
+}
 
-  if (!items.length) {
-    menuGrid.innerHTML = '<div class="empty-state">Keine Treffer in dieser Kategorie.</div>';
+function buildMenuCardMarkup(category, item) {
+  const categoryMeta = getCategoryMeta(category.category);
+  const image = getItemImage(category.category, item);
+  const isSelected = selectedItemId === item.id && selectedItemCategory === category.category;
+
+  return `
+    <button
+      class="menu-item-card ${isSelected ? 'is-selected' : ''}"
+      type="button"
+      data-item-id="${item.id}"
+      data-category="${category.category}"
+    >
+      <div class="food-thumb menu-card-thumb">
+        <img
+          class="food-thumb-img"
+          src="${image}"
+          alt="${item.name}"
+          loading="lazy"
+          referrerpolicy="no-referrer"
+          data-fallback="${categoryMeta.image}"
+        />
+      </div>
+      <div class="menu-card-copy">
+        <div class="menu-card-top">
+          <span class="menu-card-code">Nr. ${item.id}</span>
+          <span class="menu-card-price">${formatEuro(item.price)}</span>
+        </div>
+        <strong>${item.name}</strong>
+        ${item.subtitle ? `<div class="menu-card-subtitle">${item.subtitle}</div>` : ''}
+        <span class="menu-card-tag">${category.category}</span>
+      </div>
+    </button>
+  `;
+}
+
+function renderMenuGrid() {
+  const categories = getFilteredCategories();
+
+  if (!categories.length) {
+    menuGrid.innerHTML = '<div class="empty-state">Keine Treffer in der Speisekarte.</div>';
     return;
   }
 
-  menuGrid.innerHTML = items
-    .map(
-      (item) => `
-        <button
-          class="menu-item-card ${selectedItemId === item.id ? 'is-selected' : ''}"
-          type="button"
-          data-item-id="${item.id}"
-          data-category="${currentCategory.category}"
-        >
-          <div class="menu-card-thumb" style="background-image:url('${media.image}')"></div>
-          <div class="menu-card-copy">
-            <div class="menu-card-top">
-              <span class="menu-card-code">Nr. ${item.id}</span>
-              <span class="menu-card-price">${formatEuro(item.price)}</span>
+  menuGrid.innerHTML = categories
+    .map((category) => {
+      const media = getCategoryMeta(category.category);
+      const cards = category.items.map((item) => buildMenuCardMarkup(category, item)).join('');
+
+      return `
+        <section class="menu-group">
+          <div class="menu-group-head">
+            <div>
+              <h3>${category.category}</h3>
+              <p>${media.tagline}</p>
             </div>
-            <strong>${item.name}</strong>
-            ${item.subtitle ? `<div class="menu-card-subtitle">${item.subtitle}</div>` : ''}
-            <span class="menu-card-tag">${currentCategory.category}</span>
+            <span class="soft-pill">${category.items.length} Artikel</span>
           </div>
-        </button>
-      `
-    )
+          <div class="menu-group-grid">${cards}</div>
+        </section>
+      `;
+    })
     .join('');
 
   menuGrid.querySelectorAll('[data-item-id]').forEach((button) => {
-    button.addEventListener('click', () => setSelection(button.dataset.category, button.dataset.itemId));
+    button.addEventListener('click', () => {
+      const keepFilter = activeCategoryFilter === ALL_CATEGORIES_KEY;
+      setSelection(button.dataset.category, button.dataset.itemId, keepFilter);
+    });
   });
+
+  attachImageFallbacks(menuGrid);
 }
 
 function renderComposerCard() {
@@ -216,11 +299,21 @@ function renderComposerCard() {
 
   const { category, item } = selected;
   const media = getCategoryMeta(category.category);
+  const image = getItemImage(category.category, item);
   notesInput.placeholder = item.notePlaceholder || DEFAULT_NOTE_PLACEHOLDER;
 
   composerCard.innerHTML = `
     <div class="composer-preview">
-      <div class="composer-thumb" style="background-image:url('${media.image}')"></div>
+      <div class="food-thumb composer-thumb">
+        <img
+          class="food-thumb-img"
+          src="${image}"
+          alt="${item.name}"
+          loading="lazy"
+          referrerpolicy="no-referrer"
+          data-fallback="${media.image}"
+        />
+      </div>
       <div class="composer-copy">
         <div class="menu-card-top">
           <span class="menu-card-code">Nr. ${item.id}</span>
@@ -233,6 +326,8 @@ function renderComposerCard() {
       </div>
     </div>
   `;
+
+  attachImageFallbacks(composerCard);
 }
 
 function updatePaymentHint() {
@@ -241,7 +336,7 @@ function updatePaymentHint() {
   const difference = (paidState.valid ? paidState.value : 0) - total;
 
   cartTotal.textContent = formatEuro(total);
-  cartCountPill.textContent = `${cartItems.length} ${cartItems.length === 1 ? 'Artikel' : 'Artikel'}`;
+  cartCountPill.textContent = `${cartItems.length} Artikel`;
 
   if (!cartItems.length) {
     paymentHint.textContent = 'Lege zuerst mindestens ein Gericht in den Warenkorb.';
@@ -276,13 +371,25 @@ function renderCart() {
     .map(
       (item, index) => `
         <article class="cart-item ${editingCartItemId === item.cart_item_id ? 'is-editing' : ''}">
-          <div class="cart-item-copy">
-            <div class="cart-item-top">
-              <strong>${index + 1}. ${item.menu_item_name}</strong>
-              <span class="menu-card-price">${formatEuro(item.price)}</span>
+          <div class="cart-item-main">
+            <div class="food-thumb cart-item-thumb">
+              <img
+                class="food-thumb-img"
+                src="${item.image || getCategoryMeta(item.category).image}"
+                alt="${item.menu_item_name}"
+                loading="lazy"
+                referrerpolicy="no-referrer"
+                data-fallback="${getCategoryMeta(item.category).image}"
+              />
             </div>
-            <div class="cart-item-meta">${item.category} · Nr. ${item.menu_item_id}</div>
-            ${item.notes ? `<div class="cart-item-notes">Wunsch: ${item.notes}</div>` : '<div class="cart-item-notes muted">Kein Sonderwunsch</div>'}
+            <div class="cart-item-copy">
+              <div class="cart-item-top">
+                <strong>${index + 1}. ${item.menu_item_name}</strong>
+                <span class="menu-card-price">${formatEuro(item.price)}</span>
+              </div>
+              <div class="cart-item-meta">${item.category} · Nr. ${item.menu_item_id}</div>
+              ${item.notes ? `<div class="cart-item-notes">Wunsch: ${item.notes}</div>` : '<div class="cart-item-notes muted">Kein Sonderwunsch</div>'}
+            </div>
           </div>
           <div class="cart-item-actions">
             <button type="button" class="mini-btn" data-edit-cart="${item.cart_item_id}">Bearbeiten</button>
@@ -297,8 +404,9 @@ function renderCart() {
     button.addEventListener('click', () => {
       const entry = cartItems.find((item) => item.cart_item_id === button.dataset.editCart);
       if (!entry) return;
-      selectedCategory = entry.category;
+      selectedItemCategory = entry.category;
       selectedItemId = entry.menu_item_id;
+      activeCategoryFilter = entry.category;
       editingCartItemId = entry.cart_item_id;
       notesInput.value = entry.notes || '';
       addToCartBtn.textContent = 'Änderung speichern';
@@ -315,12 +423,13 @@ function renderCart() {
       const cartId = button.dataset.deleteCart;
       cartItems = cartItems.filter((item) => item.cart_item_id !== cartId);
       if (editingCartItemId === cartId) {
-        resetComposer();
+        resetComposer({ clearSelection: false });
       }
       renderCart();
     });
   });
 
+  attachImageFallbacks(cartList);
   updatePaymentHint();
 }
 
@@ -338,7 +447,8 @@ function addOrUpdateCartItem() {
     menu_item_id: item.id,
     menu_item_name: getDisplayName(item),
     price: Number(item.price),
-    notes: notesInput.value.trim()
+    notes: notesInput.value.trim(),
+    image: getItemImage(category.category, item)
   };
 
   if (editingCartItemId) {
@@ -349,7 +459,7 @@ function addOrUpdateCartItem() {
     submitMessage.textContent = 'Gericht wurde in den Warenkorb gelegt.';
   }
 
-  resetComposer();
+  resetComposer({ clearSelection: false });
   renderCart();
 }
 
@@ -364,7 +474,7 @@ amountPaidInput.addEventListener('input', updatePaymentHint);
 addToCartBtn.addEventListener('click', addOrUpdateCartItem);
 cancelEditBtn.addEventListener('click', () => {
   submitMessage.textContent = 'Bearbeitung abgebrochen.';
-  resetComposer();
+  resetComposer({ clearSelection: false });
 });
 
 form.addEventListener('submit', async (event) => {
@@ -396,21 +506,23 @@ form.addEventListener('submit', async (event) => {
 
   const order = {
     employee_name: employeeName,
-    items: cartItems,
+    items: cartItems.map(({ image, ...rest }) => rest),
     amount_paid: paidState.value,
     target_order_date: windowInfo.targetThursdayDate
   };
 
   try {
     const result = await createOrder(order);
-    submitMessage.textContent =
-      result.mode === 'updated'
-        ? 'Vorhandener Warenkorb wurde aktualisiert.'
-        : 'Warenkorb gespeichert. Auf der Azubi-Seite ist er jetzt sichtbar.';
+    submitMessage.textContent = result.mode === 'updated'
+      ? 'Vorhandener Warenkorb wurde aktualisiert.'
+      : 'Warenkorb gespeichert. Auf der Azubi-Seite ist er jetzt sichtbar.';
 
     cartItems = [];
     amountPaidInput.value = '';
-    resetComposer(true);
+    activeCategoryFilter = ALL_CATEGORIES_KEY;
+    resetComposer({ clearSelection: true });
+    renderCategoryTabs();
+    renderMenuGrid();
     renderCart();
   } catch (error) {
     console.error(error);

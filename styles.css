@@ -315,6 +315,9 @@ textarea {
   background: #f2f4f8;
   color: var(--muted);
   font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .category-tab.is-active {
@@ -324,6 +327,29 @@ textarea {
 }
 
 .menu-grid {
+  display: grid;
+  gap: 20px;
+}
+
+.menu-group {
+  display: grid;
+  gap: 14px;
+}
+
+.menu-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.menu-group-head p {
+  margin-top: 6px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.menu-group-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 16px;
@@ -348,13 +374,34 @@ textarea {
   background: #fffaf6;
 }
 
+.food-thumb,
+.menu-card-thumb,
+.composer-thumb,
+.cart-item-thumb {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #f3f5fa;
+}
+
 .menu-card-thumb,
 .composer-thumb {
-  width: 100%;
   aspect-ratio: 1.18;
-  border-radius: 18px;
-  background-size: cover;
-  background-position: center;
+}
+
+.cart-item-thumb {
+  width: 92px;
+  min-width: 92px;
+  aspect-ratio: 1;
+  border-radius: 16px;
+}
+
+.food-thumb-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
 }
 
 .menu-card-copy,
@@ -407,6 +454,24 @@ textarea {
 .soft-pill {
   color: var(--accent-strong);
   background: var(--accent-soft);
+}
+
+.tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.64);
+  color: inherit;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.category-tab.is-active .tab-count {
+  background: rgba(255, 255, 255, 0.18);
 }
 
 .cart-form,
@@ -524,6 +589,13 @@ textarea {
   border-radius: 18px;
   border: 1px solid var(--line);
   background: #fff;
+}
+
+.cart-item-main {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 12px;
+  align-items: start;
 }
 
 .cart-item.is-editing {
@@ -719,5 +791,52 @@ textarea {
 @media (max-width: 480px) {
   .menu-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+
+.menu-card-subtitle,
+.cart-item-notes,
+.cart-item-meta,
+.menu-group-head p {
+  font-size: 0.92rem;
+}
+
+@media (max-width: 760px) {
+  .menu-group-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cart-item-main {
+    grid-template-columns: 78px 1fr;
+  }
+
+  .cart-item-thumb {
+    width: 78px;
+    min-width: 78px;
+  }
+}
+
+@media (max-width: 520px) {
+  .menu-group-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .menu-item-card {
+    padding: 12px;
+    border-radius: 18px;
+  }
+
+  .menu-card-top {
+    align-items: flex-start;
+  }
+
+  .category-tabs {
+    gap: 8px;
+  }
+
+  .category-tab {
+    padding: 0 14px;
   }
 }

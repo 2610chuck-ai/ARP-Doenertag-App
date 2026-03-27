@@ -170,8 +170,7 @@ export function buildWhatsAppText(orders, dateLabel) {
   lines.push(`Gesamt bezahlt: ${formatEuro(paid)}`);
   lines.push(`Differenz / Rückgeld: ${formatEuro(change)}`);
 
-  return lines.join('
-');
+  return lines.join('\n');
 }
 
 function getLocalOrders() {
