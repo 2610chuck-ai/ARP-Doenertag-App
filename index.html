@@ -14,6 +14,14 @@
         <div>
           <span class="eyebrow">Donnerstags-Bestellung</span>
           <h1>Kebap Warenkorb</h1>
+          <p class="lead">
+            Mitarbeiter auswählen, Gericht antippen, Sonderwunsch direkt zum Gericht hinterlegen und danach in den
+            Warenkorb legen. Erst der komplette Warenkorb wird gespeichert.
+          </p>
+        </div>
+        <div class="hero-actions">
+          <span id="mode-badge" class="mode-badge"></span>
+          <a class="ghost-link" href="./azubi.html">Azubi-Seite</a>
         </div>
       </header>
 
@@ -22,7 +30,14 @@
           <div class="card-head compact-gap align-start-on-mobile">
             <div>
               <h2>Speisekarte</h2>
-            
+              <p>Komplette Speisekarte mit Kategorien, Suchfeld und gerichtsspezifischen Bildern.</p>
+            </div>
+            <label class="search-box food-search">
+              <span class="sr-only">Gericht suchen</span>
+              <input id="menu-search" type="search" placeholder="Gericht suchen..." autocomplete="off" />
+            </label>
+          </div>
+
           <div id="category-tabs" class="category-tabs"></div>
           <div id="menu-grid" class="menu-grid"></div>
         </section>
