@@ -1,5 +1,5 @@
 import { categoryMedia, employees, menuItems } from './data.js';
-import { buildCustomerWhatsAppText, config, createOrder, formatDate, formatEuro, getOrderWindow, hasLiveApi, normalizePhoneNumber } from './shared.js';
+import { config, createOrder, formatDate, formatEuro, getOrderWindow, hasLiveApi, normalizePhoneNumber } from './shared.js';
 
 const employeeSearch = document.querySelector('#employee-search');
 const employeeSelect = document.querySelector('#employee');
@@ -70,23 +70,6 @@ function getDisplayName(item) {
   return item.subtitle ? `${item.name} – ${item.subtitle}` : item.name;
 }
 
-
-function openWhatsAppConfirmation(phone, order, dateLabel, popup = null) {
-  const normalizedPhone = normalizePhoneNumber(phone);
-  if (!normalizedPhone) return false;
-
-  const text = buildCustomerWhatsAppText(order, dateLabel);
-  const targetUrl = `https://wa.me/${normalizedPhone}?text=${encodeURIComponent(text)}`;
-  const targetWindow = popup || window.open('', '_blank', 'noopener,noreferrer');
-
-  if (!targetWindow) {
-    window.location.href = targetUrl;
-    return true;
-  }
-
-  targetWindow.location.href = targetUrl;
-  return true;
-}
 
 function dateInfoMarkup() {
   if (windowInfo.nextWeekWarning) {
@@ -522,8 +505,6 @@ form.addEventListener('submit', async (event) => {
     return;
   }
 
-  const whatsappPopup = customerPhone ? window.open('', '_blank', 'noopener,noreferrer') : null;
-
   const order = {
     employee_name: employeeName,
     customer_phone: customerPhone,
@@ -535,10 +516,7 @@ form.addEventListener('submit', async (event) => {
   try {
     const result = await createOrder(order);
     const savedOrder = result?.order || order;
-    const savedDateLabel = formatDate(savedOrder.target_order_date || windowInfo.targetThursdayDate);
-    const whatsappOpened = customerPhone
-      ? openWhatsAppConfirmation(customerPhone, savedOrder, savedDateLabel, whatsappPopup)
-      : false;
+    const whatsappResult = result?.whatsapp || savedOrder?.whatsapp_delivery || null;
 
     if (result.fallback === 'local') {
       submitMessage.textContent = result.mode === 'updated'
@@ -551,9 +529,17 @@ form.addEventListener('submit', async (event) => {
     }
 
     if (customerPhone) {
-      submitMessage.textContent += whatsappOpened
-        ? ' WhatsApp-Bestätigung wurde geöffnet.'
-        : ' Bestellung gespeichert, aber WhatsApp konnte nicht geöffnet werden.';
+      if (result.fallback === 'local') {
+        submitMessage.textContent += ' Automatische WhatsApp-Zustellung ist im lokalen Fallback nicht aktiv.';
+      } else if (whatsappResult?.status === 'accepted' || whatsappResult?.status === 'sent') {
+        submitMessage.textContent += ' WhatsApp-Bestätigung wurde automatisch angestoßen.';
+      } else if (whatsappResult?.status === 'skipped_not_configured') {
+        submitMessage.textContent += ' Bestellung gespeichert, aber die WhatsApp-API ist noch nicht konfiguriert.';
+      } else if (whatsappResult?.status === 'failed') {
+        submitMessage.textContent += ` Bestellung gespeichert, aber WhatsApp-Versand fehlgeschlagen: ${whatsappResult.reason || 'Unbekannter Fehler.'}`;
+      } else {
+        submitMessage.textContent += ' Bestellung gespeichert, aber es liegt noch kein WhatsApp-Status vor.';
+      }
     }
 
     cartItems = [];
@@ -565,9 +551,6 @@ form.addEventListener('submit', async (event) => {
     renderMenuGrid();
     renderCart();
   } catch (error) {
-    if (whatsappPopup && !whatsappPopup.closed) {
-      whatsappPopup.close();
-    }
     console.error(error);
     submitMessage.textContent = `Fehler beim Speichern: ${error.message}`;
   }

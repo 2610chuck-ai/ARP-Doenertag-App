@@ -85,7 +85,13 @@ export function normalizePhoneNumber(value) {
     normalized = `${countryCode}${normalized.slice(1)}`;
   }
 
-  return normalized.replace(/\D+/g, '');
+  normalized = normalized.replace(/\D+/g, '');
+
+  if (normalized.length < 10 || normalized.length > 15) {
+    return '';
+  }
+
+  return normalized;
 }
 
 export function toLocalDateInputValue(date) {
@@ -237,6 +243,7 @@ function saveOrderLocally(payload) {
     total_price: normalizedItems.reduce((sum, item) => sum + Number(item.price || 0), 0),
     amount_paid: Number(payload.amount_paid || 0),
     target_order_date: payload.target_order_date,
+    whatsapp_delivery: payload.whatsapp_delivery || (existingIndex >= 0 ? orders[existingIndex].whatsapp_delivery || null : null),
     updated_at: new Date().toISOString(),
     created_at: existingIndex >= 0 ? orders[existingIndex].created_at || payload.created_at : payload.created_at
   };
@@ -308,7 +315,7 @@ export async function createOrder(order) {
         method: 'POST',
         body: JSON.stringify(payload)
       });
-      saveOrderLocally(payload);
+      saveOrderLocally(result?.order || payload);
       return result;
     } catch (error) {
       if (!isRecoverableApiError(error)) {

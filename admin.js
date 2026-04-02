@@ -114,6 +114,30 @@ function isPinProblem(message) {
   return text.includes('pin') || text.includes('401');
 }
 
+function getWhatsAppStatusText(order) {
+  const delivery = order?.whatsapp_delivery;
+  if (!delivery) return order?.customer_phone ? 'Noch kein Versandstatus' : 'Keine Nummer';
+
+  if (delivery.status === 'accepted' || delivery.status === 'sent') {
+    return `Automatisch gesendet${delivery.message_id ? ` · ID: ${delivery.message_id}` : ''}`;
+  }
+
+  if (delivery.status === 'skipped_not_configured') {
+    return 'API nicht konfiguriert';
+  }
+
+  if (delivery.status === 'skipped_no_phone') {
+    return 'Keine Nummer';
+  }
+
+  if (delivery.status === 'failed') {
+    return `Fehlgeschlagen${delivery.reason ? ` · ${delivery.reason}` : ''}`;
+  }
+
+  return delivery.status || 'Unbekannter Status';
+}
+
+
 function renderOrders() {
   if (!currentOrders.length) {
     ordersList.innerHTML = '<div class="empty-state">Noch keine Bestellungen für diesen Termin vorhanden.</div>';
@@ -165,6 +189,7 @@ function renderOrders() {
           <div class="order-meta">
             <span><strong>Bezahlt:</strong> ${formatEuro(order.amount_paid)}</span>
             <span><strong>Termin:</strong> ${formatDate(order.target_order_date)}</span>
+            <span><strong>WhatsApp:</strong> ${escapeHtml(getWhatsAppStatusText(order))}</span>
             <span><strong>Stand:</strong> ${formatDateTime(order.updated_at || order.created_at)}</span>
           </div>
           <div class="order-actions"><button class="danger-btn" type="button" data-delete-id="${escapeHtml(order.id)}">Bestellung löschen</button></div>
