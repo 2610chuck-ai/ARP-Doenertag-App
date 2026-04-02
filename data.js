@@ -1,4 +1,5 @@
 export const employees = [
+  'Becker, Andreas👑',
   'Boos, Viktor',
   'Brüstle, Alexander',
   'Danner, Sebastian',

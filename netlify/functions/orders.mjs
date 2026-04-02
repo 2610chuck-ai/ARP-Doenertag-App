@@ -138,6 +138,7 @@ async function handleCreate(req) {
     return json(400, { error: 'Ungültiges Bestelldatum.' });
   }
 
+  const customer_phone = cleanText(body.customer_phone, 40).replace(/[^\d+]/g, '');
   const amount_paid = cleanAmount(body.amount_paid);
   const total_price = Number(items.reduce((sum, item) => sum + Number(item.price || 0), 0).toFixed(2));
   const id = buildOrderKey(employee_name, target_order_date);
@@ -146,6 +147,7 @@ async function handleCreate(req) {
   const payload = {
     id,
     employee_name,
+    customer_phone,
     items,
     total_price,
     amount_paid,

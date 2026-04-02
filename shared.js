@@ -1,6 +1,7 @@
 const DEFAULT_CONFIG = {
   companyName: 'Kebap-Bestellung Donnerstag',
   whatsappNumber: '',
+  whatsappDefaultCountryCode: '49',
   apiBase: '/.netlify/functions',
   autoRefreshMs: 15000,
   demoMode: false
@@ -57,6 +58,34 @@ export function formatDateTime(dateLike) {
     hour: '2-digit',
     minute: '2-digit'
   }).format(parseDate(dateLike));
+}
+
+
+export function normalizePhoneNumber(value) {
+  const raw = String(value ?? '').trim();
+  if (!raw) return '';
+
+  const keepPlus = raw.startsWith('+');
+  let normalized = raw.replace(/[^\d+]/g, '');
+
+  if (keepPlus) {
+    normalized = `+${normalized.replace(/\+/g, '')}`;
+  } else {
+    normalized = normalized.replace(/\+/g, '');
+  }
+
+  if (normalized.startsWith('+')) {
+    normalized = normalized.slice(1);
+  }
+
+  if (normalized.startsWith('00')) {
+    normalized = normalized.slice(2);
+  } else if (normalized.startsWith('0')) {
+    const countryCode = String(config.whatsappDefaultCountryCode || '49').replace(/\D+/g, '') || '49';
+    normalized = `${countryCode}${normalized.slice(1)}`;
+  }
+
+  return normalized.replace(/\D+/g, '');
 }
 
 export function toLocalDateInputValue(date) {
@@ -203,6 +232,7 @@ function saveOrderLocally(payload) {
   const saved = {
     id: existingIndex >= 0 ? orders[existingIndex].id : crypto.randomUUID(),
     employee_name: payload.employee_name,
+    customer_phone: normalizePhoneNumber(payload.customer_phone),
     items: normalizedItems,
     total_price: normalizedItems.reduce((sum, item) => sum + Number(item.price || 0), 0),
     amount_paid: Number(payload.amount_paid || 0),
@@ -346,4 +376,40 @@ export function escapeHtml(value) {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
+}
+
+
+export function buildCustomerWhatsAppText(order, dateLabel = '') {
+  const items = getOrderItems(order);
+  const lines = [];
+
+  lines.push(`Bestellbestätigung ${config.companyName}`);
+  if (order.employee_name) lines.push(`Name: ${order.employee_name}`);
+  if (dateLabel) lines.push(`Termin: ${dateLabel}`);
+  lines.push('');
+  lines.push('Deine Bestellung:');
+
+  items.forEach((item, index) => {
+    const label = item.menu_item_id ? `${item.menu_item_id}. ${item.menu_item_name}` : item.menu_item_name;
+    lines.push(`${index + 1}. ${label} (${formatEuro(item.price)})`);
+    if (item.notes) {
+      lines.push(`   Wunsch: ${item.notes}`);
+    }
+  });
+
+  lines.push('');
+  lines.push(`Gesamt: ${formatEuro(getOrderTotal(order))}`);
+  lines.push(`Bezahlt: ${formatEuro(order.amount_paid)}`);
+
+  const difference = Number(order.amount_paid || 0) - getOrderTotal(order);
+  if (difference > 0) {
+    lines.push(`Rückgeld: ${formatEuro(difference)}`);
+  } else if (difference < 0) {
+    lines.push(`Offen: ${formatEuro(Math.abs(difference))}`);
+  }
+
+  lines.push('');
+  lines.push('Vielen Dank für deine Bestellung!');
+
+  return lines.join('\n');
 }

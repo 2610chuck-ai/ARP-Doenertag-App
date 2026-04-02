@@ -1,5 +1,5 @@
 import { categoryMedia, employees, menuItems } from './data.js';
-import { config, createOrder, formatDate, formatEuro, getOrderWindow, hasLiveApi } from './shared.js';
+import { buildCustomerWhatsAppText, config, createOrder, formatDate, formatEuro, getOrderWindow, hasLiveApi, normalizePhoneNumber } from './shared.js';
 
 const employeeSearch = document.querySelector('#employee-search');
 const employeeSelect = document.querySelector('#employee');
@@ -19,6 +19,7 @@ const cartList = document.querySelector('#cart-list');
 const cartCountPill = document.querySelector('#cart-count-pill');
 const cartTotal = document.querySelector('#cart-total');
 const amountPaidInput = document.querySelector('#amount-paid');
+const customerPhoneInput = document.querySelector('#customer-phone');
 const paymentHint = document.querySelector('#payment-hint');
 
 const DEFAULT_NOTE_PLACEHOLDER = 'z. B. ohne Zwiebeln, extra Soße, scharf';
@@ -67,6 +68,24 @@ function parsePaidValue(rawValue) {
 
 function getDisplayName(item) {
   return item.subtitle ? `${item.name} – ${item.subtitle}` : item.name;
+}
+
+
+function openWhatsAppConfirmation(phone, order, dateLabel, popup = null) {
+  const normalizedPhone = normalizePhoneNumber(phone);
+  if (!normalizedPhone) return false;
+
+  const text = buildCustomerWhatsAppText(order, dateLabel);
+  const targetUrl = `https://wa.me/${normalizedPhone}?text=${encodeURIComponent(text)}`;
+  const targetWindow = popup || window.open('', '_blank', 'noopener,noreferrer');
+
+  if (!targetWindow) {
+    window.location.href = targetUrl;
+    return true;
+  }
+
+  targetWindow.location.href = targetUrl;
+  return true;
 }
 
 function dateInfoMarkup() {
@@ -495,8 +514,19 @@ form.addEventListener('submit', async (event) => {
     return;
   }
 
+  const rawCustomerPhone = customerPhoneInput.value.trim();
+  const customerPhone = normalizePhoneNumber(rawCustomerPhone);
+
+  if (rawCustomerPhone && !customerPhone) {
+    submitMessage.textContent = 'Bitte eine gültige Handynummer eingeben.';
+    return;
+  }
+
+  const whatsappPopup = customerPhone ? window.open('', '_blank', 'noopener,noreferrer') : null;
+
   const order = {
     employee_name: employeeName,
+    customer_phone: customerPhone,
     items: cartItems.map(({ image, ...rest }) => rest),
     amount_paid: paidState.value,
     target_order_date: windowInfo.targetThursdayDate
@@ -504,6 +534,12 @@ form.addEventListener('submit', async (event) => {
 
   try {
     const result = await createOrder(order);
+    const savedOrder = result?.order || order;
+    const savedDateLabel = formatDate(savedOrder.target_order_date || windowInfo.targetThursdayDate);
+    const whatsappOpened = customerPhone
+      ? openWhatsAppConfirmation(customerPhone, savedOrder, savedDateLabel, whatsappPopup)
+      : false;
+
     if (result.fallback === 'local') {
       submitMessage.textContent = result.mode === 'updated'
         ? 'Warenkorb lokal aktualisiert.'
@@ -514,14 +550,24 @@ form.addEventListener('submit', async (event) => {
         : 'Warenkorb gespeichert.';
     }
 
+    if (customerPhone) {
+      submitMessage.textContent += whatsappOpened
+        ? ' WhatsApp-Bestätigung wurde geöffnet.'
+        : ' Bestellung gespeichert, aber WhatsApp konnte nicht geöffnet werden.';
+    }
+
     cartItems = [];
     amountPaidInput.value = '';
+    customerPhoneInput.value = '';
     activeCategoryFilter = menuItems[0]?.category || '';
     resetComposer({ clearSelection: true });
     renderCategoryTabs();
     renderMenuGrid();
     renderCart();
   } catch (error) {
+    if (whatsappPopup && !whatsappPopup.closed) {
+      whatsappPopup.close();
+    }
     console.error(error);
     submitMessage.textContent = `Fehler beim Speichern: ${error.message}`;
   }

@@ -157,7 +157,7 @@ function renderOrders() {
           <div class="order-main">
             <div>
               <h3>${escapeHtml(order.employee_name)}</h3>
-              <p>${items.length} Artikel im Warenkorb</p>
+              <p>${items.length} Artikel im Warenkorb${order.customer_phone ? ` · WhatsApp: ${escapeHtml(order.customer_phone)}` : ''}</p>
             </div>
             <div class="order-price">${formatEuro(getOrderTotal(order))}</div>
           </div>
